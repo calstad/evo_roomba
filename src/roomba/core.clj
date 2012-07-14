@@ -1,6 +1,7 @@
 (ns roomba.core
   (:use [clojure.string :only (join)])
-  (:require [clojure.math.combinatorics :as combo]))
+  (:require [clojure.math.combinatorics :as combo]
+            [clojure.core.reducers :as r]))
 
 (def room-dimension 10)
 
@@ -161,7 +162,7 @@
   [strategy]
   (let [room (add-hairballs! (generate-room))
         roomba (generate-roomba strategy)]
-    (reduce + (repeatedly number-of-moves #(clean-step room roomba)))))
+    (r/fold + (r/map (fn [_] (clean-step room roomba)) (range 1 number-of-moves)))))
 
 (defn generate-genome
   []
@@ -176,9 +177,8 @@
 
 (defn calc-fitness
   [strategy]
-  (let [totals (repeatedly number-of-sessions #(run-cleaning-session strategy))
-        total-sum (reduce + totals)]
-    (double (/ total-sum (count totals)))))
+  (let [sum (r/fold + (r/map (fn [_] (run-cleaning-session strategy)) (range 1 number-of-sessions)))]
+    (double (/ sum number-of-sessions))))
 
 (defn calc-population-fitness
   [population]
