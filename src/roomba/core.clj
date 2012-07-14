@@ -162,7 +162,7 @@
   [strategy]
   (let [room (add-hairballs! (generate-room))
         roomba (generate-roomba strategy)]
-    (r/fold + (r/map (fn [_] (clean-step room roomba)) (range 1 number-of-moves)))))
+    (r/fold + (r/map (fn [_] (clean-step room roomba)) (vec (range 1 number-of-moves))))))
 
 (defn generate-genome
   []
@@ -177,9 +177,9 @@
 
 (defn calc-fitness
   [strategy]
-  (let [sum (r/fold + (r/map (fn [_] (run-cleaning-session strategy)) (range 1 number-of-sessions)))]
+  (let [sum (r/fold + (r/map (fn [_] (run-cleaning-session strategy)) (vec (range 1 number-of-sessions))))]
     (double (/ sum number-of-sessions))))
 
 (defn calc-population-fitness
   [population]
-  (doall (pmap #(calc-fitness (:genome %)) population)))
+  (r/fold (r/monoid into vector) conj (r/map #(calc-fitness (:genome %)) population)))
