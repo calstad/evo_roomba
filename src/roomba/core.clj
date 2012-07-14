@@ -19,20 +19,13 @@
   []
   (apply vector
          (map (fn [_]
-                (apply vector (map (fn [_] (ref {:hairball 0}))
+                (apply vector (map (fn [_] (atom {:hairball 0}))
                                    (range room-dimension))))
               (range room-dimension))))
 
-(defn generate-genome
-  []
-  (reduce (fn [genome _]
-            (conj genome (rand-int 7)))
-          []
-          (range 243)))
-
 (defn generate-roomba
   [strategy]
-  (ref {:pos [0 0] :cleaning-score 0 :strategy strategy}))
+  (atom {:pos [0 0] :strategy strategy}))
 
 (defn get-cell
   "Returns the atom for the given coordinate in the room."
@@ -44,8 +37,7 @@
   [room]
   (doseq [row room cell row]
     (if (= 1 (rand-int 2))
-      (dosync
-       (alter cell assoc :hairball 1))))
+      (swap! cell assoc :hairball 1)))
   room)
 
 (defn hash-situation
@@ -107,30 +99,16 @@
   (let [current-pos (:pos @roomba)]
     (map (partial get-cell-state room) (neighborhood current-pos))))
 
-;; TODO Break out taking action and updating score
-(defn update-score
-  [score update-amt]
-  (+ score update-amt))
-
 (defn move-roomba
   "Moves the roomba unless the new position is a wall. Must be in a transaction."
-  [roomba dir]
-  (let [current-pos (:pos @roomba)
-        new-pos (coords-in-dir current-pos dir)]
-    (if (not (wall? new-pos))
-      (alter roomba assoc :pos new-pos)
-      (alter roomba update-in [:cleaning-score] update-score wall-penalty))))
+  [roomba new-pos]
+  (swap! roomba assoc :pos new-pos))
 
 (defn pickup-hairball
   "Picks up a hairball if there is one at the roomba's current position.  Must be in a transaction."
-  [room roomba]
-  (let [current-pos (:pos @roomba)
-        current-cell (get-cell room current-pos)]
-    (if (has-hairball? room current-pos)
-      (do
-        (alter roomba update-in [:cleaning-score] update-score hairball-reward)
-        (alter current-cell assoc :hairball 0))
-      (alter roomba update-in [:cleaning-score] update-score hairball-penalty))))
+  [room current-pos]
+  (let [current-cell (get-cell room current-pos)]
+    (swap! current-cell assoc :hairball 0)))
 
 (def actions
   {0 {:type :move :dir :north}
@@ -141,17 +119,30 @@
    5 {:type :pickup}
    6 {:type :move :dir (rand-nth dirs)}})
 
+;; TODO Clean up returing of score.
 (defmulti exec-action
   (fn [room roomba action]
     (:type action)))
 
 (defmethod exec-action :move
   [room roomba action]
-  (move-roomba roomba (:dir action)))
+  (let [dir (:dir action)
+        current-pos (:pos @roomba)
+        new-pos (coords-in-dir current-pos dir)]
+    (if (not (wall? new-pos))
+      (do
+        (move-roomba roomba new-pos)
+        0)
+      wall-penalty)))
 
 (defmethod exec-action :pickup
   [room roomba action]
-  (pickup-hairball room roomba))
+  (let [current-pos (:pos @roomba)]
+    (if (has-hairball? room current-pos)
+      (do
+        (pickup-hairball room current-pos)
+        hairball-reward)
+      hairball-penalty)))
 
 (defn next-action
   [room roomba]
@@ -160,25 +151,34 @@
         action-key (nth (:strategy @roomba) situation-idx)]
     (get actions action-key)))
 
+(defn clean-step
+  "Returns the score for the single action taken"
+  [room roomba]
+  (let [action (next-action room roomba)]
+    (exec-action room roomba action)))
+
 (defn run-cleaning-session
   [strategy]
   (let [room (add-hairballs! (generate-room))
         roomba (generate-roomba strategy)]
-    (dotimes [_ number-of-moves]
-      (dosync
-       (let [action (next-action room roomba)]
-         (exec-action room roomba action))))
-    (:cleaning-score @roomba)))
+    (reduce + (repeatedly number-of-moves #(clean-step room roomba)))))
+
+(defn generate-genome
+  []
+  (reduce (fn [genome _]
+            (conj genome (rand-int 7)))
+          []
+          (range 243)))
+
+(defn generate-individual
+  []
+  {:fitness 0 :genome (generate-genome)})
 
 (defn calc-fitness
   [strategy]
   (let [totals (repeatedly number-of-sessions #(run-cleaning-session strategy))
         total-sum (reduce + totals)]
     (double (/ total-sum (count totals)))))
-
-(defn generate-individual
-  []
-  {:fitness 0 :genome (generate-genome)})
 
 (defn calc-population-fitness
   [population]
