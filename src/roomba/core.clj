@@ -182,4 +182,4 @@
 
 (defn calc-population-fitness
   [population]
-  (doall (map #(calc-fitness (:genome %)) population)))
+  (doall (pmap #(calc-fitness (:genome %)) population)))
