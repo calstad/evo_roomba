@@ -2,17 +2,8 @@
   (:use [clojure.string :only (join)])
   (:require [clojure.math.combinatorics :as combo]))
 
+;; Defining the room
 (def room-dimension 10)
-
-(def wall-penalty -5)
-(def hairball-penalty -1)
-(def hairball-reward 10)
-
-(def number-of-moves 100)
-(def number-of-sessions 200)
-
-(def number-of-generations 1000)
-(def population-size 200)
 
 (defn generate-room
   "Generates a 2D vector with no hairballs in each cell."
@@ -22,10 +13,6 @@
                 (apply vector (map (fn [_] (atom {:hairball 0}))
                                    (range room-dimension))))
               (range room-dimension))))
-
-(defn generate-roomba
-  [strategy]
-  (atom {:pos [0 0] :strategy strategy}))
 
 (defn get-cell
   "Returns the atom for the given coordinate in the room."
@@ -40,13 +27,6 @@
       (swap! cell assoc :hairball 1)))
   room)
 
-(defn hash-situation
-  [situation]
-  (hash (join situation)))
-
-(def cell-states
-  ["empty" "hairball" "wall"])
-
 (defn wall?
   [[x y]]
   (letfn [(out-of-bounds? [n]
@@ -59,6 +39,10 @@
   (let [cell (get-cell room coords)]
     (= 1 (:hairball @cell))))
 
+(def cell-states
+  "Each cell in the room is one of these three states."
+  ["empty" "hairball" "wall"])
+
 (defn get-cell-state
   "Tells whether the cell at coords in room is a wall, has a hairball in it, or empty."
   [room coords]
@@ -67,7 +51,12 @@
    (has-hairball? room coords) "hairball"
    :else "empty"))
 
+(defn hash-situation
+  [situation]
+  (hash (join situation)))
+
 (def situation-map
+  "A map where the keys are the hash of the string formed by joining the states from the north, south, east, west, and current cell and the values are the index in the strategy for the corresponding neiborhood situation."
   (let [all-situations (combo/selections cell-states 5)]
     (into {}
           (map-indexed (fn [idx situation] [(hash-situation situation) idx])
@@ -120,6 +109,10 @@
    6 {:type :move :dir (rand-nth dirs)}})
 
 ;; TODO Clean up returing of score.
+(def wall-penalty -5)
+(def hairball-penalty -1)
+(def hairball-reward 10)
+
 (defmulti exec-action
   (fn [room roomba action]
     (:type action)))
@@ -157,6 +150,13 @@
   (let [action (next-action room roomba)]
     (exec-action room roomba action)))
 
+(def number-of-moves 100)
+(def number-of-sessions 200)
+
+(defn generate-roomba
+  [strategy]
+  (atom {:pos [0 0] :strategy strategy}))
+
 (defn run-cleaning-session
   [strategy]
   (let [room (add-hairballs! (generate-room))
@@ -171,8 +171,9 @@
           (range 243)))
 
 (defn generate-individual
-  []
-  {:fitness 0 :genome (generate-genome)})
+  [& genome]
+  (let [g (if genome (vec (first genome)) (generate-genome))]
+    {:fitness 0 :genome g}))
 
 (defn calc-fitness
   [strategy]
@@ -182,4 +183,45 @@
 
 (defn calc-population-fitness
   [population]
-  (doall (pmap #(calc-fitness (:genome %)) population)))
+  (doall
+   (vec (pmap #(assoc % :fitness (calc-fitness (:genome %)))
+              population))))
+
+(def number-of-generations 1000)
+(def population-size 200)
+(def tournament-size 5)
+
+(defn most-fit
+  [population]
+  (first (sort-by :fitness > population)))
+
+(defn tournament-selection
+  "Randomly selects tournament-size individuals and chooses the most fit for mating."
+  [population]
+  (let [tourney-pop (repeatedly tournament-size #(rand-nth population))]
+    (most-fit tourney-pop)))
+
+(defn generate-offspring
+  "Returns a pair of offspring by crossing over the genomes of mother and father"
+  [{mother :genome} {father :genome}]
+  (let [crossover-pt (inc (rand-int 242))
+        children [(concat (take crossover-pt mother) (drop crossover-pt father))
+                  (concat (take crossover-pt father) (drop crossover-pt mother))]]
+    (map generate-individual children)))
+
+(defn next-generation
+  [population]
+  (flatten (repeatedly (/ population-size 2)
+                       #(generate-offspring (tournament-selection population)
+                                            (tournament-selection population)))))
+
+(defn evolve!
+  []
+  (let [initial-pop (repeatedly population-size generate-individual)]
+    (loop [population initial-pop generation 1]
+      (if (> generation number-of-generations)
+        (most-fit population)
+        (let [fitness-pop (calc-population-fitness population)]
+          (println (:fitness (most-fit fitness-pop)))
+          (recur (next-generation fitness-pop)
+                 (inc generation)))))))
