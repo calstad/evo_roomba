@@ -6,18 +6,16 @@
 (def ^:const room-dimension 10)
 
 (defn generate-room
-  "Generates a 2D vector with no hairballs in each cell."
   []
-  (apply vector
-         (map (fn [_]
-                (apply vector (map (fn [_] (atom {:hairball 0}))
-                                   (range room-dimension))))
-              (range room-dimension))))
+  (vec (repeatedly (* room-dimension room-dimension) #(rand-int 2))))
+
+(defn coords->idx
+  [[x y]]
+  (+ x (* y room-dimension)))
 
 (defn get-cell
-  "Returns the atom for the given coordinate in the room."
-  [room [x y]]
-  (-> room (nth y) (nth x)))
+  [room coords]
+  (nth room (coords->idx coords)))
 
 (defn add-hairballs!
   "Places a hairball in a cell with a .5 probability."
