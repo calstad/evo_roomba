@@ -17,25 +17,17 @@
   [room coords]
   (nth room (coords->idx coords)))
 
-(defn add-hairballs!
-  "Places a hairball in a cell with a .5 probability."
-  [room]
-  (doseq [row room cell row]
-    (if (= 1 (rand-int 2))
-      (swap! cell assoc :hairball 1)))
-  room)
-
 (defn wall?
   [[x y]]
-  (letfn [(out-of-bounds? [n]
-            (or (> 0 n) (> n (dec room-dimension))))]
-    (or (out-of-bounds? x)
-        (out-of-bounds? y))))
+  (let [adjusted-dim (dec room-dimension)]
+    (or (> 0 x)
+        (> 0 y)
+        (> x adjusted-dim)
+        (> y adjusted-dim))))
 
 (defn has-hairball?
   [room coords]
-  (let [cell (get-cell room coords)]
-    (= 1 (:hairball @cell))))
+  (= 1 (get-cell room coords)))
 
 (def cell-states
   "Each cell in the room is one of these three states."
@@ -83,19 +75,17 @@
 (defn current-situation
   "Returns the states of the cells directly to the north, south, east, west, and current position of the roomba."
   [room roomba]
-  (let [current-pos (:pos @roomba)]
+  (let [current-pos (:pos roomba)]
     (map (partial get-cell-state room) (neighborhood current-pos))))
 
 (defn move-roomba
   "Moves the roomba unless the new position is a wall. Must be in a transaction."
   [roomba new-pos]
-  (swap! roomba assoc :pos new-pos))
+  (assoc roomba :pos new-pos))
 
 (defn pickup-hairball
-  "Picks up a hairball if there is one at the roomba's current position.  Must be in a transaction."
   [room current-pos]
-  (let [current-cell (get-cell room current-pos)]
-    (swap! current-cell assoc :hairball 0)))
+  (assoc room (coords->idx current-pos) 0))
 
 (def actions
   {0 {:type :move :dir :north}
@@ -104,7 +94,7 @@
    3 {:type :move :dir :west}
    4 {:type :move :dir :north}
    5 {:type :pickup}
-   6 {:type :move :dir (rand-nth dirs)}})
+   6 {:type :random}})
 
 ;; TODO Clean up returing of score.
 (def ^:const wall-penalty -5)
@@ -112,54 +102,56 @@
 (def ^:const hairball-reward 10)
 
 (defmulti exec-action
-  (fn [room roomba action]
+  (fn [world action]
     (:type action)))
 
 (defmethod exec-action :move
-  [room roomba action]
+  [{:keys [room roomba score]} action]
   (let [dir (:dir action)
-        current-pos (:pos @roomba)
+        current-pos (:pos roomba)
         new-pos (coords-in-dir current-pos dir)]
     (if (not (wall? new-pos))
-      (do
-        (move-roomba roomba new-pos)
-        0)
-      wall-penalty)))
+      {:room room :roomba (move-roomba roomba new-pos) :score score}
+      {:room room :roomba roomba :score (+ score wall-penalty)})))
 
 (defmethod exec-action :pickup
-  [room roomba action]
-  (let [current-pos (:pos @roomba)]
+  [{:keys [room roomba score]} action]
+  (let [current-pos (:pos roomba)]
     (if (has-hairball? room current-pos)
-      (do
-        (pickup-hairball room current-pos)
-        hairball-reward)
-      hairball-penalty)))
+      {:room (pickup-hairball room current-pos) :roomba roomba :score (+ score hairball-reward)}
+      {:room room :roomba roomba :score (+ score hairball-penalty)})))
+
+(defmethod exec-action :random
+  [world action]
+  (exec-action world (get actions (rand-int 7))))
 
 (defn next-action
   [room roomba]
   (let [situation (current-situation room roomba)
         situation-idx (get situation-map (hash-situation situation))
-        action-key (nth (:strategy @roomba) situation-idx)]
+        action-key (nth (:strategy roomba) situation-idx)]
     (get actions action-key)))
 
 (defn clean-step
-  "Returns the score for the single action taken"
-  [room roomba]
+  "Returns the world after taking the single action taken"
+  [{:keys [room roomba] :as world}]
   (let [action (next-action room roomba)]
-    (exec-action room roomba action)))
+    (exec-action world action)))
 
 (def ^:const number-of-moves 100)
 (def ^:const number-of-sessions 200)
 
 (defn generate-roomba
   [strategy]
-  (atom {:pos [0 0] :strategy strategy}))
+  {:pos [0 0] :strategy strategy})
 
 (defn run-cleaning-session
+  "Returns the score for the strategy after moving the roomba number-of-moves"
   [strategy]
-  (let [room (add-hairballs! (generate-room))
-        roomba (generate-roomba strategy)]
-    (reduce + (repeatedly number-of-moves #(clean-step room roomba)))))
+  (loop [world {:room (generate-room) :roomba (generate-roomba strategy) :score 0} move 1]
+    (if (> move number-of-moves)
+      (:score world)
+      (recur (clean-step world) (inc move)))))
 
 (defn generate-genome
   []
