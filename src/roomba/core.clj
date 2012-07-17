@@ -66,13 +66,13 @@
 (defn neighborhood
   "Returns the coordinates of the cells directly to the north, south, east, west, and current position."
   [current-pos]
-  (vec (map (partial coords-in-dir current-pos) dirs)))
+  (vec (for [dir dirs] (coords-in-dir current-pos dir))))
 
 (defn current-situation
   "Returns the states of the cells directly to the north, south, east, west, and current position of the roomba."
   [room roomba]
   (let [current-pos (:pos roomba)]
-    (map (partial get-cell-state room) (neighborhood current-pos))))
+    (vec (map #(get-cell-state room %) (neighborhood current-pos)))))
 
 (defn move-roomba
   [roomba new-pos]
@@ -168,9 +168,8 @@
 
 (defn calc-population-fitness
   [population]
-  (doall
-   (vec (pmap #(assoc % :fitness (calc-fitness (:genome %)))
-              population))))
+  (vec (pmap #(assoc % :fitness (calc-fitness (:genome %)))
+             population)))
 
 (def ^:const number-of-generations 1000)
 (def ^:const population-size 200)
