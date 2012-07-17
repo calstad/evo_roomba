@@ -162,7 +162,7 @@
   [strategy]
   (let [totals (repeatedly number-of-sessions #(run-cleaning-session strategy))
         total-sum (reduce + totals)]
-    (double (/ total-sum number-of-sessions ))))
+    (double (/ total-sum number-of-sessions))))
 
 (defn calc-population-fitness
   [population]
@@ -205,6 +205,6 @@
       (if (> generation number-of-generations)
         (most-fit population)
         (let [fitness-pop (calc-population-fitness population)]
-          (println (:fitness (most-fit fitness-pop)))
+          (println generation (:fitness (most-fit fitness-pop)))
           (recur (next-generation fitness-pop)
                  (inc generation)))))))
