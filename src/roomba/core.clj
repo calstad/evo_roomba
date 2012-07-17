@@ -31,25 +31,21 @@
 
 (def cell-states
   "Each cell in the room is one of these three states."
-  ["empty" "hairball" "wall"])
+  [:empty :hairball :wall])
 
 (defn get-cell-state
   "Tells whether the cell at coords in room is a wall, has a hairball in it, or empty."
   [room coords]
   (cond
-   (wall? coords) "wall"
-   (has-hairball? room coords) "hairball"
-   :else "empty"))
-
-(defn hash-situation
-  [situation]
-  (hash (join situation)))
+   (wall? coords) :wall
+   (has-hairball? room coords) :hairball
+   :else :empty))
 
 (def situation-map
-  "A map where the keys are the hash of the string formed by joining the states from the north, south, east, west, and current cell and the values are the index in the strategy for the corresponding neiborhood situation."
+  "A map where the keys are the states from the north, south, east, west, and current cell and the values are the index in the strategy for the corresponding neiborhood situation."
   (let [all-situations (combo/selections cell-states 5)]
     (into {}
-          (map-indexed (fn [idx situation] [(hash-situation situation) idx])
+          (map-indexed (fn [idx situation] [(vec situation) idx])
                        all-situations))))
 
 (def dirs [:north :south :east :west :current])
@@ -79,7 +75,6 @@
     (map (partial get-cell-state room) (neighborhood current-pos))))
 
 (defn move-roomba
-  "Moves the roomba unless the new position is a wall. Must be in a transaction."
   [roomba new-pos]
   (assoc roomba :pos new-pos))
 
@@ -128,7 +123,7 @@
 (defn next-action
   [room roomba]
   (let [situation (current-situation room roomba)
-        situation-idx (get situation-map (hash-situation situation))
+        situation-idx (get situation-map situation)
         action-key (nth (:strategy roomba) situation-idx)]
     (get actions action-key)))
 
