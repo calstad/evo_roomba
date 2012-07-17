@@ -162,7 +162,7 @@
   [strategy]
   (let [totals (repeatedly number-of-sessions #(run-cleaning-session strategy))
         total-sum (reduce + totals)]
-    (double (/ total-sum (count totals)))))
+    (double (/ total-sum number-of-sessions ))))
 
 (defn calc-population-fitness
   [population]
