@@ -24,7 +24,7 @@
 
 (defn calc-fitness
   [strategy]
-  (let [totals (repeatedly number-of-sessions #(room/run-cleaning-session strategy))
+  (let [totals (repeatedly number-of-sessions #(run-cleaning-session strategy))
         total-sum (reduce + totals)]
     (double (/ total-sum number-of-sessions))))
 
