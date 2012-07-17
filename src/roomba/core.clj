@@ -3,7 +3,7 @@
   (:require [clojure.math.combinatorics :as combo]))
 
 ;; Defining the room
-(def room-dimension 10)
+(def ^:const room-dimension 10)
 
 (defn generate-room
   "Generates a 2D vector with no hairballs in each cell."
@@ -109,9 +109,9 @@
    6 {:type :move :dir (rand-nth dirs)}})
 
 ;; TODO Clean up returing of score.
-(def wall-penalty -5)
-(def hairball-penalty -1)
-(def hairball-reward 10)
+(def ^:const wall-penalty -5)
+(def ^:const hairball-penalty -1)
+(def ^:const hairball-reward 10)
 
 (defmulti exec-action
   (fn [room roomba action]
@@ -150,8 +150,8 @@
   (let [action (next-action room roomba)]
     (exec-action room roomba action)))
 
-(def number-of-moves 100)
-(def number-of-sessions 200)
+(def ^:const number-of-moves 100)
+(def ^:const number-of-sessions 200)
 
 (defn generate-roomba
   [strategy]
@@ -187,9 +187,9 @@
    (vec (pmap #(assoc % :fitness (calc-fitness (:genome %)))
               population))))
 
-(def number-of-generations 1000)
-(def population-size 200)
-(def tournament-size 5)
+(def ^:const number-of-generations 1000)
+(def ^:const population-size 200)
+(def ^:const tournament-size 5)
 
 (defn most-fit
   [population]
