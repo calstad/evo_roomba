@@ -185,17 +185,18 @@
 
 (defn generate-offspring
   "Returns a pair of offspring by crossing over the genomes of mother and father"
-  [{mother :genome} {father :genome}]
-  (let [crossover-pt (inc (rand-int 242))
-        children [(concat (take crossover-pt mother) (drop crossover-pt father))
-                  (concat (take crossover-pt father) (drop crossover-pt mother))]]
+  [[{mother :genome} {father :genome}]]
+  (let [crossover-pt (rand-int 243)
+        children [(vec (concat (subvec mother 0 crossover-pt) (subvec father crossover-pt)))
+                  (vec (concat (subvec father 0 crossover-pt) (subvec mother crossover-pt)))]]
     (map generate-individual children)))
 
 (defn next-generation
   [population]
-  (flatten (repeatedly (/ population-size 2)
-                       #(generate-offspring (tournament-selection population)
-                                            (tournament-selection population)))))
+  (->> (repeatedly population-size #(tournament-selection population))
+       (partition 2)
+       (mapcat generate-offspring)
+       vec))
 
 (defn evolve!
   []
