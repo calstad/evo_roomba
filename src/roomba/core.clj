@@ -42,7 +42,7 @@
    :else :empty))
 
 (def situation-map
-  "A map where the keys are the states from the north, south, east, west, and current cell and the values are the index in the strategy for the corresponding neiborhood situation."
+  "A map where the keys are the states from the north, south, east, west, and current cell and the values are the index in the strategy for the corresponding neighborhood situation."
   (let [all-situations (combo/selections cell-states 5)]
     (into {}
           (map-indexed (fn [idx situation] [(vec situation) idx])
