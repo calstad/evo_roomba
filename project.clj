@@ -11,7 +11,7 @@
                  [org.clojure/math.combinatorics "0.0.3"]]
   :cljsbuild {
               :builds [{:source-path "src-cljs"
-                        :compiler {:output-to "resources/public/js/roombax.js"
+                        :compiler {:output-to "resources/public/js/roomba.js"
                                    :optimizations :whitespace
                                    :pretty-print true}}]
               :crossovers [roomba.room]
