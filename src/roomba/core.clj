@@ -200,7 +200,7 @@
 
 (defn evolve!
   []
-  (let [initial-pop (repeatedly population-size generate-individual)]
+  (let [initial-pop (vec (repeatedly population-size generate-individual))]
     (loop [population initial-pop generation 1]
       (if (> generation number-of-generations)
         (most-fit population)
