@@ -154,9 +154,9 @@
         (repeatedly 243 #(rand-int 7))))
 
 (defn generate-individual
-  [& genome]
-  (let [g (if genome (vec (first genome)) (generate-genome))]
-    {:fitness 0 :genome g}))
+  ([] (generate-individual (generate-genome)))
+  ([genome]
+     {:fitness 0 :genome genome}))
 
 (defn calc-fitness
   [strategy]
