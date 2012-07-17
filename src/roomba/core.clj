@@ -208,3 +208,7 @@
           (println generation (:fitness (most-fit fitness-pop)))
           (recur (next-generation fitness-pop)
                  (inc generation)))))))
+
+(defn -main
+  [& args]
+  (evolve!))
