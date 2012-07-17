@@ -150,10 +150,8 @@
 
 (defn generate-genome
   []
-  (reduce (fn [genome _]
-            (conj genome (rand-int 7)))
-          []
-          (range 243)))
+  (into []
+        (repeatedly 243 #(rand-int 7))))
 
 (defn generate-individual
   [& genome]
