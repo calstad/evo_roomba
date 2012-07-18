@@ -5,10 +5,13 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :main roomba.core
   :warn-on-reflection true
-  :plugins [[lein-cljsbuild "0.2.4"]]
+  :plugins [[lein-cljsbuild "0.2.4"]
+            [lein-ring "0.7.1"]]
   :hooks [leiningen.cljsbuild]
   :dependencies [[org.clojure/clojure "1.4.0"]
-                 [org.clojure/math.combinatorics "0.0.3"]]
+                 [org.clojure/math.combinatorics "0.0.3"]
+                 [hiccup "1.0.0"]
+                 [compojure "1.1.1"]]
   :cljsbuild {
               :builds [{:source-path "src-cljs"
                         :compiler {:output-to "resources/public/js/roomba.js"
@@ -16,4 +19,5 @@
                                    :pretty-print true}}]
               :crossovers [roomba.room]
               :crossover-path "crossover-cljs"}
-  :source-paths ["src-clj"])
+  :source-paths ["src-clj"]
+  :ring {:handler roomba.web-server/app})
