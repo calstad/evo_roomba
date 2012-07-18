@@ -3,7 +3,7 @@
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
-  :main roomba.core
+  :main ^:skip-aot roomba.core
   :warn-on-reflection true
   :plugins [[lein-cljsbuild "0.2.4"]
             [lein-ring "0.7.1"]]
@@ -19,5 +19,4 @@
                                    :pretty-print true}}]
               :crossovers [roomba.room]
               :crossover-path "crossover-cljs"}
-  :source-paths ["src-clj"]
   :ring {:handler roomba.web-server/app})
