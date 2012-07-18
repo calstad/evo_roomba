@@ -17,10 +17,10 @@
    [:head
     [:title "Roomba!"]]
    [:body
-    [:h1 "Roomba Time"]
+    [:h1 "Roomba Time!"]
     [:canvas#roomba-canvas {:width 500 :height 500}]
     (run-clojurescript "/js/roomba.js"
-                       "roomba.animation.foo()")]))
+                       "roomba.animation.draw()")]))
 
 (defroutes roomba-routes
   (GET "/"
