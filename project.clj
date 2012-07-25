@@ -9,7 +9,6 @@
             [lein-ring "0.7.1"]]
   :hooks [leiningen.cljsbuild]
   :dependencies [[org.clojure/clojure "1.4.0"]
-                 [org.clojure/math.combinatorics "0.0.3"]
                  [hiccup "1.0.0"]
                  [compojure "1.1.1"]]
   :cljsbuild {

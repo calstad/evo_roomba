@@ -1,5 +1,5 @@
 (ns roomba.room
-  (:require [clojure.math.combinatorics :as combo]))
+  (:require [roomba.math :as combo]))
 
 ;; Defining the room
 (def ^:const room-dimension 10)
