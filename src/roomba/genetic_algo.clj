@@ -2,6 +2,7 @@
   (:require [roomba.room :as room]
             [roomba.config :as config]))
 
+(def fittest-individual (atom nil))
 
 (defn generate-genome
   []
@@ -54,9 +55,11 @@
   (let [initial-pop (vec (repeatedly config/population-size generate-individual))]
     (loop [population initial-pop generation 1]
       (if (> generation config/number-of-generations)
-        (most-fit population)
-        (let [fitness-pop (calc-population-fitness population)]
-          (println generation (:fitness (most-fit fitness-pop)))
+        @fittest-individual
+        (let [fitness-pop (calc-population-fitness population)
+              fittest (most-fit fitness-pop)]
+          (println generation (:fitness fittest))
+          (reset! fittest-individual fittest)
           (recur (next-generation fitness-pop)
                  (inc generation)))))))
 
