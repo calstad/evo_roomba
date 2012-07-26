@@ -1,8 +1,8 @@
-(ns roomba.core
-  (:require [roomba.animation :as animation]
-            [roomba.client :as client]
-            [roomba.room :as room]
-            [roomba.config :as config]
+(ns evo-roomba.core
+  (:require [evo-roomba.animation :as animation]
+            [evo-roomba.client :as client]
+            [evo-roomba.cleaning-session :as cs]
+            [evo-roomba.config :as config]
             [goog.dom :as dom]))
 
 (defn run-animation
@@ -11,7 +11,7 @@
         window (dom/getWindow)]
     (. window (setTimeout
                (fn []
-                 (room/run-cleaning-session genome animation/draw))
+                 (cs/run-cleaning-session genome animation/draw))
                1000))))
 
 (defn run-evolution

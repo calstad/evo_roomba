@@ -1,6 +1,6 @@
-(ns roomba.genetic-algo
-  (:require [roomba.room :as room]
-            [roomba.config :as config]))
+(ns evo-roomba.genetic-algo
+  (:require [evo-roomba.cleaning-session :as cs]
+            [evo-roomba.config :as config]))
 
 (def fittest-individual (atom nil))
 
@@ -16,7 +16,7 @@
 
 (defn calc-fitness
   [strategy]
-  (let [totals (repeatedly config/number-of-sessions #(room/run-cleaning-session strategy))
+  (let [totals (repeatedly config/number-of-sessions #(cs/run-cleaning-session strategy))
         total-sum (reduce + totals)]
     (double (/ total-sum config/number-of-sessions))))
 
