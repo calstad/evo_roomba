@@ -1,3 +1,4 @@
+*.DS_Store
 /target
 /lib
 /classes
@@ -10,5 +11,6 @@ pom.xml
 .lein-failures
 .lein-plugins
 .lein-cljsbuild-compiler*
+/.repl
 /resources/public/js/roomba.js
 /out
