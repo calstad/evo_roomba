@@ -1,4 +1,4 @@
-(ns roomba.math)
+(ns evo-roomba.math)
 
 (defn selections 
   "Set s choose n. This expands into a for comprehension."

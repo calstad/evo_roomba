@@ -1,6 +1,6 @@
-(ns roomba.room
-  (:require [roomba.math :as combo]
-            [roomba.config :as config]))
+(ns evo-roomba.cleaning-session
+  (:require [evo-roomba.math :as combo]
+            [evo-roomba.config :as config]))
 
 (defn generate-room
   []
@@ -135,9 +135,11 @@
   {:pos [0 0] :strategy strategy})
 
 (defn run-cleaning-session
-  "Returns the score for the strategy after moving the roomba number-of-moves"
-  [strategy]
+  "Returns the score for the strategy after moving the roomba number-of-moves. Takes an optional list of functions to be applied to the world on each step."
+  [strategy & step-fns]
   (loop [world {:room (generate-room) :roomba (generate-roomba strategy) :score 0} move 1]
     (if (> move config/number-of-moves)
       (:score world)
-      (recur (clean-step world) (inc move)))))
+      (do
+        (doseq [step-fn step-fns] (step-fn world))
+        (recur (clean-step world) (inc move))))))

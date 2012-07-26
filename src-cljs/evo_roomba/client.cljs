@@ -1,5 +1,5 @@
-(ns roomba.client
-  (:require [roomba.config :as config]
+(ns evo-roomba.client
+  (:require [evo-roomba.config :as config]
             [cljs.reader :as reader]
             [goog.dom :as dom]
             [goog.net.XhrIo :as xhr]))

@@ -1,7 +1,7 @@
-(ns roomba.web-server
+(ns evo-roomba.web-server
   (:use compojure.core
         [ring.util.response :only (response content-type)])
-  (:require [roomba.genetic-algo :as algo]
+  (:require [evo-roomba.genetic-algo :as algo]
             [hiccup.page :as page]
             [hiccup.element :as elem]
             [compojure.route :as route]
@@ -22,7 +22,7 @@
     [:h1 "Roomba Time!"]
     [:canvas#roomba-canvas {:width 500 :height 500}]
     (run-clojurescript "/js/roomba.js"
-                       "roomba.core.run_evolution()")]))
+                       "evo_roomba.core.run_evolution()")]))
 
 (def evolution-future (atom nil))
 
@@ -44,7 +44,7 @@
        (roomba-animation-page))
   (GET "/fittest-individual"
        []
-       (content-type (response (with-out-str (prn fi))) "application/clojure"))
+       (content-type (response (with-out-str (prn @algo/fittest-individual))) "application/clojure"))
   (GET "/stop-evolution"
        []
        (stop-evolution)

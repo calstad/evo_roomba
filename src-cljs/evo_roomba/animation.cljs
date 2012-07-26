@@ -1,7 +1,7 @@
-(ns roomba.animation
+(ns evo-roomba.animation
   (:require [clojure.browser.dom :as dom]
-            [roomba.room :as room]
-            [roomba.config :as config]))
+            [evo-roomba.cleaning-session :as cs]
+            [evo-roomba.config :as config]))
 
 (def canvas (dom/get-element "roomba-canvas"))
 
@@ -71,7 +71,7 @@
   (doseq [x (range config/room-dimension) y (range config/room-dimension)]
     (let [coords [x y]
           scaled-coords (scaled-coords coords)]
-      (if (room/has-hairball? room coords)
+      (if (cs/has-hairball? room coords)
         (dirty-cell ctx scaled-coords)
         (clean-cell ctx scaled-coords))))
   ctx)

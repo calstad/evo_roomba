@@ -1,4 +1,4 @@
-(ns roomba.config)
+(ns evo-roomba.config)
 
 ;; Genetic Algorithm configs
 (def ^:const number-of-moves 100)
