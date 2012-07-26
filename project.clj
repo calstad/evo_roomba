@@ -16,6 +16,6 @@
                         :compiler {:output-to "resources/public/js/roomba.js"
                                    :optimizations :whitespace
                                    :pretty-print true}}]
-              :crossovers [roomba.room]
+              :crossovers [roomba.room roomba.math roomba.config]
               :crossover-path "crossover-cljs"}
   :ring {:handler roomba.web-server/app})
