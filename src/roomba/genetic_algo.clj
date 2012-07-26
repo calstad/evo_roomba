@@ -1,8 +1,6 @@
 (ns roomba.genetic-algo
-  (:require [roomba.room :as room]))
-
-(def ^:const number-of-moves 100)
-(def ^:const number-of-sessions 200)
+  (:require [roomba.room :as room]
+            [roomba.config :as config]))
 
 (defn run-cleaning-session
   "Returns the score for the strategy after moving the roomba number-of-moves"
@@ -24,18 +22,14 @@
 
 (defn calc-fitness
   [strategy]
-  (let [totals (repeatedly number-of-sessions #(run-cleaning-session strategy))
+  (let [totals (repeatedly config/number-of-sessions #(room/run-cleaning-session strategy))
         total-sum (reduce + totals)]
-    (double (/ total-sum number-of-sessions))))
+    (double (/ total-sum config/number-of-sessions))))
 
 (defn calc-population-fitness
   [population]
   (vec (pmap #(assoc % :fitness (calc-fitness (:genome %)))
              population)))
-
-(def ^:const number-of-generations 1000)
-(def ^:const population-size 200)
-(def ^:const tournament-size 5)
 
 (defn most-fit
   [population]
@@ -44,7 +38,7 @@
 (defn tournament-selection
   "Randomly selects tournament-size individuals and chooses the most fit for mating."
   [population]
-  (let [tourney-pop (repeatedly tournament-size #(rand-nth population))]
+  (let [tourney-pop (repeatedly config/tournament-size #(rand-nth population))]
     (most-fit tourney-pop)))
 
 (defn generate-offspring
@@ -57,16 +51,16 @@
 
 (defn next-generation
   [population]
-  (->> (repeatedly population-size #(tournament-selection population))
+  (->> (repeatedly config/population-size #(tournament-selection population))
        (partition 2)
        (mapcat generate-offspring)
        vec))
 
 (defn evolve!
   []
-  (let [initial-pop (vec (repeatedly population-size generate-individual))]
+  (let [initial-pop (vec (repeatedly config/population-size generate-individual))]
     (loop [population initial-pop generation 1]
-      (if (> generation number-of-generations)
+      (if (> generation config/number-of-generations)
         (most-fit population)
         (let [fitness-pop (calc-population-fitness population)]
           (println generation (:fitness (most-fit fitness-pop)))

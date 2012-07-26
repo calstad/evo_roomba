@@ -1,16 +1,14 @@
 (ns roomba.room
-  (:require [roomba.math :as combo]))
-
-;; Defining the room
-(def ^:const room-dimension 10)
+  (:require [roomba.math :as combo]
+            [roomba.config :as config]))
 
 (defn generate-room
   []
-  (vec (repeatedly (* room-dimension room-dimension) #(rand-int 2))))
+  (vec (repeatedly (* config/room-dimension config/room-dimension) #(rand-int 2))))
 
 (defn coords->idx
   [[x y]]
-  (+ x (* y room-dimension)))
+  (+ x (* y config/room-dimension)))
 
 (defn get-cell
   [room coords]
@@ -18,7 +16,7 @@
 
 (defn wall?
   [[x y]]
-  (let [adjusted-dim (dec room-dimension)]
+  (let [adjusted-dim (dec config/room-dimension)]
     (or (> 0 x)
         (> 0 y)
         (> x adjusted-dim)
