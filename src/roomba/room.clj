@@ -134,3 +134,10 @@
   [strategy]
   {:pos [0 0] :strategy strategy})
 
+(defn run-cleaning-session
+  "Returns the score for the strategy after moving the roomba number-of-moves"
+  [strategy]
+  (loop [world {:room (generate-room) :roomba (generate-roomba strategy) :score 0} move 1]
+    (if (> move config/number-of-moves)
+      (:score world)
+      (recur (clean-step world) (inc move)))))

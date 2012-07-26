@@ -2,13 +2,6 @@
   (:require [roomba.room :as room]
             [roomba.config :as config]))
 
-(defn run-cleaning-session
-  "Returns the score for the strategy after moving the roomba number-of-moves"
-  [strategy]
-  (loop [world {:room (room/generate-room) :roomba (room/generate-roomba strategy) :score 0} move 1]
-    (if (> move number-of-moves)
-      (:score world)
-      (recur (room/clean-step world) (inc move)))))
 
 (defn generate-genome
   []
